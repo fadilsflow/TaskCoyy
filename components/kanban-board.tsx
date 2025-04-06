@@ -842,18 +842,7 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Tasks</h2>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
-                        <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button onClick={() => setIsDialogOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Task
-                    </Button>
-                </div>
-            </div>
+
 
             {isClient && (
                 <ActiveTasksTracker
@@ -869,7 +858,15 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
                     isBreakTime={isGlobalBreakTime}
                 />
             )}
+            <div className="flex justify-end items-center">
 
+                <div className="flex gap-2">
+                    <Button onClick={() => setIsDialogOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Task
+                    </Button>
+                </div>
+            </div>
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {data.columnOrder.map((columnId) => {
