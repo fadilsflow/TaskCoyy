@@ -164,6 +164,7 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
     const [globalTimerStartTime, setGlobalTimerStartTime] = useState<number | null>(null);
     const [isGlobalBreakTime, setIsGlobalBreakTime] = useState(false);
     const [isClient, setIsClient] = useState(false);
+    const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
     // Use external state if provided
     const effectiveIsSettingsOpen = externalIsSettingsOpen !== undefined ? externalIsSettingsOpen : isSettingsOpen;
@@ -315,9 +316,15 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
         if (isGlobalTimerPaused) {
             // Start timer
             setIsGlobalTimerPaused(false);
-            setGlobalTimerStartTime(Date.now());
 
-            // Update all active tasks to start their timers
+            // Calculate the new start time based on the remaining time
+            // This ensures we resume from where we left off
+            const now = Date.now();
+            const adjustedStartTime = now - ((timerSettings[globalTimerMode === "pomodoro" ? "pomodoroTime" :
+                globalTimerMode === "break" ? "shortBreakTime" : "longBreakTime"] - globalTimer) * 1000);
+            setGlobalTimerStartTime(adjustedStartTime);
+
+            // Update all active tasks
             setData((prevData) => {
                 const updatedTasks = { ...prevData.tasks };
                 let hasChanges = false;
@@ -328,7 +335,7 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
                         updatedTasks[taskId] = {
                             ...task,
                             isPaused: false,
-                            startTime: Date.now(),
+                            startTime: adjustedStartTime,
                         };
                         hasChanges = true;
                     }
@@ -344,6 +351,9 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
         } else {
             // Pause timer
             setIsGlobalTimerPaused(true);
+
+            // Save the current remaining time
+            setRemainingTime(globalTimer);
 
             // Update all active tasks to pause their timers
             setData((prevData) => {
@@ -441,6 +451,59 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
             };
         });
     }
+    // Add this function after line ~419 (after handleGlobalLongBreak)
+    const handleSkipTimer = () => {
+        if (isGlobalTimerPaused) return;
+
+        if (globalTimerMode === "pomodoro") {
+            // If skipping a pomodoro, count it as completed
+            // Update completed pomodoro count for active tasks
+            setData((prevData) => {
+                const updatedTasks = { ...prevData.tasks };
+                let hasChanges = false;
+
+                Object.keys(updatedTasks).forEach((taskId) => {
+                    const task = updatedTasks[taskId];
+                    if (task.isActive) {
+                        updatedTasks[taskId] = {
+                            ...task,
+                            completedPomodoros: task.completedPomodoros + 1,
+                            isPaused: true,
+                            startTime: null,
+                        };
+                        hasChanges = true;
+                    }
+                });
+
+                if (!hasChanges) return prevData;
+
+                return {
+                    ...prevData,
+                    tasks: updatedTasks,
+                };
+            });
+
+            // Check if we should start a long break based on interval
+            const completedPomodoroCount = activeTasks.reduce((sum, task) => sum + task.completedPomodoros, 0);
+            if (completedPomodoroCount % timerSettings.longBreakInterval === 0) {
+                // Start long break
+                handleGlobalLongBreak();
+            } else {
+                // Start short break
+                handleGlobalShortBreak();
+            }
+
+            toast.success("Pomodoro completed!");
+        } else {
+            // If skipping a break, go back to pomodoro
+            handleGlobalPomodoro();
+            toast.info("Break skipped. Starting next pomodoro.");
+        }
+
+        // Reset global timer state
+        setIsGlobalTimerPaused(true);
+        setGlobalTimerStartTime(null);
+    };
 
     const handleGlobalPomodoro = () => {
         setGlobalTimerMode("pomodoro");
@@ -853,6 +916,7 @@ export function KanbanBoard({ isSettingsOpen: externalIsSettingsOpen, setIsSetti
                     onShortBreak={handleGlobalShortBreak}
                     onLongBreak={handleGlobalLongBreak}
                     onPomodoro={handleGlobalPomodoro}
+                    onSkipTimer={handleSkipTimer} // Add this new prop
                     isPaused={isGlobalTimerPaused}
                     timerMode={globalTimerMode}
                     isBreakTime={isGlobalBreakTime}

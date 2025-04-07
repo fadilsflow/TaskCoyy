@@ -1,15 +1,15 @@
 import type { Task, TimerSettings, TimerMode } from "@/components/kanban-board"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Check } from "lucide-react"
-import { cn } from "@/lib/utils"
-
+import { Progress } from "@/components/ui/progress"
+import { Play, Pause, SkipForward, Timer, Coffee, Clock } from "lucide-react"
 
 interface ActiveTasksTrackerProps {
     activeTasks: Task[]
     globalTimer: number
     timerSettings: TimerSettings
     onStartPause: () => void
+    onSkipTimer: () => void
     onShortBreak: () => void
     onLongBreak: () => void
     onPomodoro: () => void
@@ -23,6 +23,7 @@ export function ActiveTasksTracker({
     globalTimer,
     timerSettings,
     onStartPause,
+    onSkipTimer,
     onShortBreak,
     onLongBreak,
     onPomodoro,
@@ -53,12 +54,8 @@ export function ActiveTasksTracker({
     }
 
     return (
-        
-        <Card
-            className="border-none shadow-none bg-transparent"
-        >
+        <Card className="border-none shadow-none bg-transparent">
             <CardContent className="p-6">
-                
                 <div className="flex justify-center gap-2 mb-4">
                     <Button
                         onClick={onPomodoro}
@@ -67,6 +64,7 @@ export function ActiveTasksTracker({
                         size="sm"
                         className="w-24"
                     >
+
                         Pomodoro
                     </Button>
                     <Button
@@ -76,6 +74,7 @@ export function ActiveTasksTracker({
                         size="sm"
                         className="w-24"
                     >
+
                         Short Break
                     </Button>
                     <Button
@@ -85,12 +84,13 @@ export function ActiveTasksTracker({
                         size="sm"
                         className="w-24"
                     >
+                        
                         Long Break
                     </Button>
                 </div>
 
                 <div className="text-center mb-6">
-                    <div className="text-9xl font-bold mb-2">
+                    <div className="text-9xl font-mono   font-bold mb-2">
                         {formatTime(globalTimer)}
                     </div>
                     <div className="text-lg font-medium mb-4">
@@ -101,15 +101,40 @@ export function ActiveTasksTracker({
                 </div>
 
                 <div className="flex justify-center mb-6">
-                    <Button
-                        onClick={onStartPause}
-                        className="w-32"
-                    >
-                        {isPaused ? "Start" : "Pause"}
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            onClick={onStartPause}
+                            className="w-32"
+                        >
+                            {isPaused ? (
+                                <>
+                                    <Play className="mr-2 h-4 w-4" />
+                                    Start
+                                </>
+                            ) : (
+                                <>
+                                    <Pause className="mr-2 h-4 w-4" />
+                                    Pause
+                                </>
+                            )}
+                        </Button>
+
+                        {!isPaused && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                    // Add this function to props to be passed from KanbanBoard
+                                    onSkipTimer();
+                                }}
+                            >
+                                <SkipForward className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
-               
+                <Progress value={getTimerProgress()} className="h-2 mb-6" />
 
                 {activeTasksCount > 0 && (
                     <div className="space-y-2">
@@ -119,16 +144,6 @@ export function ActiveTasksTracker({
                         {activeTasks.map((task) => (
                             <div key={task.id} className="flex items-center justify-between py-2 border-t">
                                 <div className="flex items-center gap-2">
-                                    <Check
-                                        className={cn(
-                                            "h-5 w-5",
-                                            task.isBreakTime && task.timerMode === "break"
-                                                ? "text-primary"
-                                                : task.isBreakTime && task.timerMode === "long-break"
-                                                    ? "text-secondary"
-                                                    : "text-muted-foreground",
-                                        )}
-                                    />
                                     <div>
                                         <div className="font-medium">{task.title}</div>
                                         <div className="text-sm text-muted-foreground">
