@@ -1,4 +1,4 @@
-import type { Task, TimerSettings, TimerMode } from "@/components/kanban-board"
+import type { Task, TimerSettings, TimerMode } from "@/types/kanban"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -54,8 +54,8 @@ export function ActiveTasksTracker({
     }
 
     return (
-        <Card className="border-none shadow-none bg-transparent">
-            <CardContent className="p-6">
+        <Card className="border-none max-w-2xl  shadow-none bg-transparent">
+            <CardContent className="p-6 ">
                 <div className="flex justify-center gap-2 mb-4">
                     <Button
                         onClick={onPomodoro}
@@ -84,7 +84,7 @@ export function ActiveTasksTracker({
                         size="sm"
                         className="w-24"
                     >
-                        
+
                         Long Break
                     </Button>
                 </div>
@@ -93,11 +93,7 @@ export function ActiveTasksTracker({
                     <div className="text-9xl font-mono   font-bold mb-2">
                         {formatTime(globalTimer)}
                     </div>
-                    <div className="text-lg font-medium mb-4">
-                        {isBreakTime
-                            ? (timerMode === "break" ? "Short Break Time" : "Long Break Time")
-                            : "Pomodoro Time"}
-                    </div>
+
                 </div>
 
                 <div className="flex justify-center mb-6">
@@ -142,16 +138,18 @@ export function ActiveTasksTracker({
                             Active Tasks ({activeTasksCount})
                         </div>
                         {activeTasks.map((task) => (
-                            <div key={task.id} className="flex items-center justify-between py-2 border-t">
-                                <div className="flex items-center gap-2">
-                                    <div>
-                                        <div className="font-medium">{task.title}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Pomodoros: {task.completedPomodoros}/{task.totalPomodoros}
-                                        </div>
-                                    </div>
+                            <div key={task.id} className="flex items-center justify-between py-2 border-t font-medium">
+
+
+                                <div>
+                                    {task.title}
                                 </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {task.completedPomodoros}/{task.totalPomodoros}</div>
                             </div>
+
+
+
                         ))}
                     </div>
                 )}
@@ -162,7 +160,7 @@ export function ActiveTasksTracker({
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     )
 }
 

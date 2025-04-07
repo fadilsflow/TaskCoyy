@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  title     String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(false)
+  tasks     Task[]
+}
+
+model Task {
+  id                 String    @id @default(uuid())
+  title              String
+  description        String
+  totalPomodoros     Int       @default(2)
+  completedPomodoros Int       @default(0)
+  isActive           Boolean   @default(false)
+  isPaused           Boolean   @default(true)
+  startTime          DateTime?
+  timerMode          String    @default("pomodoro")
+  isBreakTime        Boolean   @default(false)
+  isCompleted        Boolean   @default(false)
+  projectId          String
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  columnId           String
+  column             Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  position           Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Column {
+  id        String   @id @default(uuid())
+  title     String
+  position  Int
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

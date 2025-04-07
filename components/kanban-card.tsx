@@ -1,6 +1,6 @@
 "use client"
 
-import type { Task, TimerMode, TimerSettings } from "@/components/kanban-board"
+import type { Task, TimerMode, TimerSettings } from "@/types/kanban"
 import { Draggable } from "@hello-pangea/dnd"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

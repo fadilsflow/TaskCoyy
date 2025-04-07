@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import type { TimerMode } from "@/components/kanban-board"
+import type { TimerMode } from "@/types/kanban"
 import { Coffee, SkipForward } from "lucide-react"
 import { cn } from "@/lib/utils"
 
